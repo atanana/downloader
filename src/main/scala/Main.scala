@@ -1,5 +1,6 @@
 import java.nio.file.{Files, Paths}
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 import net.liftweb.json._
 
@@ -26,11 +27,12 @@ object Main {
     val downloadFolder = Paths.get(System.getProperty("user.dir"), "downloads_" + System.currentTimeMillis())
     downloadFolder.toFile.mkdirs()
     implicit val executor: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(10))
+    val counter: AtomicInteger = new AtomicInteger
 
     Await.ready(Future.sequence(links.map(link => Future {
       val file: String = filename(link)
       Files.write(Paths.get(downloadFolder.toString, file), Http(link).asBytes.body)
-      println(file)
+      println(s"${counter.incrementAndGet()} / ${links.size} $file")
     })), duration.Duration.Inf)
 
     System.exit(0)
